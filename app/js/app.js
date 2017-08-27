@@ -53,6 +53,23 @@ app.controller("CampaignCtrl", [ '$scope', '$location', '$http', '$q', '$window'
     return $scope.getCampaignStatus();
   })
 
+  //Contribute to the campaign
+  $scope.contribute = function () {
+    if (parseInt($scope.newContribution) <= 0) return;
+    console.log("contribution", $scope.newContribution);
+    var newContribution = $scope.newContribution;
+    $scope.newContribution = "";
+    $scope.contract.contribute({ from: $scope.account, value: parseInt(newContribution), gas: 900000 })
+    .then(function (txn) {
+      console.log("Transaction Receipt, " , txn);
+      return $scope.getCampaignStatus();
+    })
+    .catch(function (err) {
+      console.log("Error processing contribution, ", err);
+    });
+  }
+
+  //Get the campaign status
   $scope.getCampaignStatus = function () {
     return $scope.contract.fundsRaised({from: $scope.account})
     .then(function (_fundsRaised) {

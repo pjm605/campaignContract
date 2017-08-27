@@ -41,6 +41,12 @@
             <div class="green" ng-if="campaignIsSuccess">Success!</div>
             <div class="red" ng-if="campaignHasFailed">Failed!</div>
           </h4>
+          <form id="contributeForm" ng-submit="contribute()">
+            <input type="type" name="newContribution" ng-model="newContribution" required/>
+            <input type="submit" class="btn btn-primary" value="Contribute" />
+          </form>
+          
+          <br/>
 
           <div class="panel panel-default">
             <div class="panel-body">

@@ -1,10 +1,8 @@
-<!doctype html>
-<html lang="en" dir="ltr">
+<!DOCTYPE html>
+<html>
 <head>
-  <title>Campagin</title>
-  <meta charset="utf-8">
-
- <!--  <base href="." /> -->
+  <base href="." />
+  <title>FundingHub</title>
 
   <!-- Latest compiled and minified bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
@@ -17,69 +15,140 @@
 
   <!-- Latest compiled and minified bootstrap JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-
-<!--   <link href="stylesheets/app.css" rel='stylesheet' type='text/css'> -->
-<!--   <script src="js/angular.js"></script> -->
+<!-- 
+  <link href="./app.css" rel='stylesheet' type='text/css'>
+ -->
+  <!-- app controller -->
   <script src="js/app.js"></script>
 
 </head>
-<body ng-cloak ng-controller="CampaignCtrl">
+
+<body ng-cloak ng-controller="HubController">     
   <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
-          <h3><span class="black">Campaign</span> Status</h3>
-          <h6>your account: {{ account }}</h6>
-          <h6>your balance: {{ balance }}</h6>
-          <h6>your balance in eth: {{ balanceInEth }}</h6>
-          <h6>Contract Address: {{ contract.address }}</h6>
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Funding<span class="black">Hub </span>
+        
+        <table>
+          <tr>
+            <td>
+              <form id="campaignForm" ng-submit="newCampaign()">
+                <input type="text" name="goal"     ng-model="new.goal"     placeholder="goal in Wei" size="10" required />
+                <input type="text" name="duration" ng-model="new.duration" placeholder="duration in Blocks" required />
+                <input type="submit" class="btn btn-primary addnew" value="New Campaign"></h3>
+              </form>
+            </td>
+            <td>        
+              <h3>
+                <form id="accountForm" ng-submit="setAccount()">
+                  &nbsp;
+                  <select name="account" ng-model="accountSelected" required>
+                    <option ng-repeat="account in accounts" value="{{ account }}">
+                    {{ account }}
+                    </option>
+                  </select>
+                  <input type="submit" class="btn btn-primary addnew" value="Select Account"></h3>
+                </form>
+              </h3>
+            </td>
+          </tr>
+        </table>
 
-          <h4>
-            Funds Raised: {{ campaignFundsRaised }}
-            Deadline:     {{ campaignDeadline }}
-            Goal:         {{ campaginGoal }}
-            Block Number: {{ blockNumber }}
-            <div class="green" ng-if="campaignIsSuccess">Success!</div>
-            <div class="red" ng-if="campaignHasFailed">Failed!</div>
-          </h4>
-          <form id="contributeForm" ng-submit="contribute()">
-            <input type="type" name="newContribution" ng-model="newContribution" required/>
-            <input type="submit" class="btn btn-primary" value="Contribute" />
-          </form>
-          
-          <br/>
 
-          <div class="panel panel-default">
-            <div class="panel-body">
+        <h6>Your Balance (wei): {{ balance }} <span style="color: #777;">(account: {{ account }})</span></h6>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+
+            <form id="contributeForm" ng-submit="contribute()">
               <table class="table table-striped table-bordered">
-
                 <tr>
-                  <th> Funder</th>
-                  <th> Block</th>
-                  <th> Amount</th>
+                  <th>Choose Campaign to Contribute</th>
+                  <th>Contribution in Wei</th>
+                  <th>&nbsp;</th>
                 </tr>
-
-                <tr ng-repeat="contribution in contributionLog">
-                  <td>{{ contribution.args.sender }}</td>
-                  <td>{{ contribution.blockNumber }}</td>
-                  <td>{{ contribution.args.amount }}</td>
+                <tr>
+                  <td>
+                    <select name="campaign" ng-model="campaignSelected" required>
+                      <option></option>
+                      <option ng-repeat="campaign in campaigns track by campaign.campaign" value="{{ campaign.campaign }}">
+                        {{ campaign.campaign }}
+                      </option>
+                    </select>
+                  </td>
+                  <td><input type="text" class="form-control" ng-model="contribution" placeholder="0 in Wei" required/></td>
+                  <td><input type="submit" class="btn btn-primary addnew pull-right" value="Contribute"></td>
+                </tr>
               </table>
-            </div>
+            </form>
+
+            <table class="table table-striped table-bordered">
+              <thead>
+                <tr>
+                  <th>Campaign</th>  
+                  <th>Campaign Goal</th> 
+                  <th>Campaign Accepted</th>
+                  <th>Campaign Withdrawn</th> 
+                  <th>Deadline</th>
+                  <th>User Contributed</th>
+                  <th>User Refunded</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr ng-repeat="campaign in campaigns track by campaign.campaign">              
+                  <td>{{ campaign.campaign }}</td>
+                  <td>{{ campaign.goal }}</td>
+                  <td>{{ campaign.accepted }}</td>                    
+                  <td>{{ campaign.withdrawn }}</td>
+                  <td>{{ campaign.deadline }}</td>
+                  <td>{{ campaign.userAccepted }}</td>
+                  <td>{{ campaign.userRefunded }}</td>
+                  <td>{{ campaign.status }}</td>
+                  <td>
+                    <form>
+                      <input 
+                        ng-if= 'campaign.status == "failed" && campaign.userAccepted - campaign.userRefunded > 0' 
+                        type="submit" class="btn btn-success addnew pull-right" value="Refund"
+                        ng-click="refund(campaign.campaign)">
+                      <input 
+                        ng-if= 'campaign.status != "failed" || campaign.userAccepted - campaign.userRefunded <= 0' 
+                        type="submit" class="btn btn-success addnew pull-right 
+                        disabled" value="Refund">
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <table class="table table-striped table-bordered">
+              <tr>
+                <th>Event</th>
+                <th>Amount</th>
+                <th>Campaign</th>
+                <th>User</th>
+              </tr>
+              <tr ng-repeat="campaignInfo in campaignLog">
+                <td>{{ campaignInfo.event }}</td>
+                <td>{{ campaignInfo.args.amount }}</td>
+                <td>{{ campaignInfo.args.campaign }}</td>
+                <td>{{ campaignInfo.args.user }}</td>
+              </tr>
+            </table>
+
           </div>
         </div>
       </div>
+    </div>
   </div>
 
-
   <script>
-  	window.addEventListener('load', function () {
-  		angular.bootstrap(document, ['app']);
-  	});
-
+    window.addEventListener('load', function() {
+      angular.bootstrap(document, ['HubApp'])
+    });
   </script>
 
-
-   
 </body>
+
 </html>
-
-
